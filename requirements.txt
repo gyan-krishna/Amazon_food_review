@@ -1,5 +1,4 @@
 interact-with-gapminder-data-app
-│   README.md
 │   requirements.txt    
 │   User_interface.py    
 │
