@@ -68,12 +68,22 @@ def lr_model(text):
     return score
 
 def svm_model(text):
-    tfidf_vectoriszer = pickle.load(open(r'SVM/vectorizer.pickle', 'rb'))
+    tfidf_vectoriszer = pickle.load(open(r'TF_IDF/vectorizer.pickle', 'rb'))
     score = 0
     for m in svm_models:
         p = m.predict(tfidf_vectoriszer.transform([text]))
         score += p[0]
     score /= len(lr_models)
+    #(score)
+    return score
+
+def rf_model(text):
+    tfidf_vectoriszer = pickle.load(open(r'TF_IDF/vectorizer.pickle', 'rb'))
+    score = 0
+    for m in rf_models:
+        p = m.predict(tfidf_vectoriszer.transform([text]))
+        score += p[0]
+    score /= len(rf_models)
     #(score)
     return score
 
@@ -149,11 +159,18 @@ def get_product_details(url):
     return [name, price, image]
 
 def df_scoring(df):
-    score = 0
+    score = [0,0,0,0]
         
     for review in df['review']:
-        score += lr_model(review) * 100
-    score /= len(df['review'])
+        score[0] += lr_model(review) * 100
+        score[1] += svm_model(review) * 100
+        score[2] += nbc_model(review) * 100
+        score[3] += rf_model(review) * 100
+        
+    score[0] /= len(df['review'])
+    score[1] /= len(df['review'])
+    score[2] /= len(df['review'])
+    score[3] /= len(df['review'])
     return score
     
 ########################################################################
@@ -177,7 +194,7 @@ def main():
         if('http' in review):
             
             df = get_review_df(review)
-            lr_score = df_scoring(df)
+            lr_score, svm_score, nbc_score, rf_score = df_scoring(df)
             
             product_name, price, image_url = get_product_details(review)
                 
@@ -203,10 +220,10 @@ def main():
             lr_score = lr_model(review) * 100
             lr_score = round(lr_score, 2)
             
-            svm_score = lr_model(review) * 100
+            svm_score = svm_model(review) * 100
             svm_score = round(lr_score, 2)
             
-            rf_score = lr_model(review) * 100
+            rf_score = rf_model(review) * 100
             rf_score = round(lr_score, 2)
         
         score = nbc_score
