@@ -14,6 +14,8 @@ rf_models  = []
 def load_models():
     path1 = r'Models/NBC'
     path2 = r'Models/LR'
+    path3 = r'Models/SVM'
+    path4 = r'Models/RF'
     
     files = os.listdir(path1)
     for f in files:
@@ -27,6 +29,18 @@ def load_models():
         m = pickle.load(open(p, 'rb'))
         lr_models.append(m)
 
+    files = os.listdir(path3)
+    for f in files:
+        p = os.path.join(path3, f)
+        m = pickle.load(open(p, 'rb'))
+        svm_models.append(m)
+        
+    files = os.listdir(path4)
+    for f in files:
+        p = os.path.join(path4, f)
+        m = pickle.load(open(p, 'rb'))
+        rf_models.append(m)
+        
 def nbc_model(text):
     tfidf_vectoriszer = pickle.load(open(r'TF_IDF/vectorizer.pickle', 'rb'))
     score = 0
@@ -43,6 +57,16 @@ def lr_model(text):
     tfidf_vectoriszer = pickle.load(open(r'TF_IDF/vectorizer.pickle', 'rb'))
     score = 0
     for m in lr_models:
+        p = m.predict(tfidf_vectoriszer.transform([text]))
+        score += p[0]
+    score /= len(lr_models)
+    print(score)
+    return score
+
+def svm_model(text):
+    tfidf_vectoriszer = pickle.load(open(r'SVM/vectorizer.pickle', 'rb'))
+    score = 0
+    for m in svm_models:
         p = m.predict(tfidf_vectoriszer.transform([text]))
         score += p[0]
     score /= len(lr_models)
@@ -88,6 +112,12 @@ def main():
             
             lr_score = lr_model(review) * 100
             lr_score = round(lr_score, 2)
+            
+            svm_score = lr_model(review) * 100
+            svm_score = round(lr_score, 2)
+            
+            rf_score = lr_model(review) * 100
+            rf_score = round(lr_score, 2)
         
         score = nbc_score
         col1, col2 = st.columns(2)
