@@ -5,6 +5,10 @@ import pandas as pd
 #import numpy as np
 import plotly.express as px
 import os
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
 
 nbc_models = []
 svm_models = []
@@ -50,7 +54,7 @@ def nbc_model(text):
         p = m.predict(vctr)
         score += p[0]
     score /= len(nbc_models)
-    print(score)
+    #(score)
     return score
 
 def lr_model(text):
@@ -60,7 +64,7 @@ def lr_model(text):
         p = m.predict(tfidf_vectoriszer.transform([text]))
         score += p[0]
     score /= len(lr_models)
-    print(score)
+    #(score)
     return score
 
 def svm_model(text):
@@ -70,9 +74,89 @@ def svm_model(text):
         p = m.predict(tfidf_vectoriszer.transform([text]))
         score += p[0]
     score /= len(lr_models)
-    print(score)
+    #(score)
     return score
 
+
+################################################################
+HEADERS = ({'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
+            AppleWebKit/537.36 (KHTML, like Gecko) \
+            Chrome/90.0.4430.212 Safari/537.36',
+            'Accept-Language': 'en-US, en;q=0.5'})
+
+def getdata(url):
+    r = requests.get(url, headers=HEADERS)
+    return r.text
+  
+def html_code(url):
+    htmldata = getdata(url)
+    soup = BeautifulSoup(htmldata, 'html.parser')
+    return (soup)
+
+def pre_process_stars(star_str):
+    r = star_str[0:3]
+    return float(r)
+
+def pre_process_dates(s):
+    st = s[24:]
+    return st 
+
+def get_rev_zones(soup):
+    review_cards = []
+    for item in soup.find_all("div", class_="a-section review aok-relative"):
+        review_cards.append(item)
+    #for i in review_cards:
+    #    (i, end = '\n-----------------------------------\n')
+    return review_cards
+
+def extract_info(card):
+    name = (card.find('span', class_='a-profile-name')).getText()
+    star = pre_process_stars((card.find('span', class_='a-icon-alt')).getText())
+    summary = (card.find('a', class_='a-size-base a-link-normal review-title a-color-base review-title-content a-text-bold')).getText()
+    date = pre_process_dates(card.find('span', class_='a-size-base a-color-secondary review-date').getText())
+    review = (card.find('div', class_='a-expander-content reviewText review-text-content a-expander-partial-collapse-content')).getText()
+    helpfulness = card.find('span', class_='a-size-base a-color-tertiary cr-vote-text')
+    if helpfulness:
+        helpfulness = helpfulness.getText()
+    else:
+        helpfulness = 0
+        
+    #(name, star, summary, date, review, helpfulness, end = '\n-----------\n')
+    return [name, star, summary, date, review, helpfulness]
+
+def get_review_df(url):
+    soup = html_code(url)
+    cards = get_rev_zones(soup)
+    data = []
+    for i in cards:
+        info = extract_info(i)
+        data.append(info)
+    #(data)
+    df = pd.DataFrame(data, columns = ['Name', 'Stars', 'Summary', 'date', 'review', 'helpfulness'])
+    return df    
+
+def get_product_details(url):
+    soup = html_code(url)
+    
+    name = soup.find('span', class_='a-size-large product-title-word-break').getText()
+    price = soup.find('span', class_='a-price-whole').getText()
+    image = soup.find_all("img", class_ = "a-dynamic-image a-stretch-horizontal")
+    
+    if(len(image)>0):
+        image = image[0]['src']
+    
+    return [name, price, image]
+
+def df_scoring(df):
+    score = 0
+        
+    for review in df['review']:
+        score += lr_model(review) * 100
+    score /= len(df['review'])
+    return score
+    
+########################################################################
 def main():
     load_models()
     st.title(":green[Amazon Food Review Analyser]")
@@ -91,24 +175,30 @@ def main():
     
     if(st.button("Predict")):
         if('http' in review):
-            product_name = "dummy"
-            review_count = 5
-            image_url = "https://m.media-amazon.com/images/I/61tMn7E8CwL._SX679_.jpg"
-            price = 200
             
+            df = get_review_df(review)
+            lr_score = df_scoring(df)
+            
+            product_name, price, image_url = get_product_details(review)
+                
+            #product_name = "dummy"
+            review_count = len(df['review'])
+            #image_url = "https://m.media-amazon.com/images/I/61tMn7E8CwL._SX679_.jpg"
+            #price = 200
+            print(df['review'])
             col1, col2 = st.columns(2)
             col1.markdown("")
-            col1.markdown("##### *:blue[Product] &nbsp; &nbsp; &nbsp; &nbsp;: "+product_name+"*")
+            col1.markdown("##### *:blue[Product] &nbsp; &nbsp; &nbsp; &nbsp; : "+product_name[:20]+"*")
             col1.markdown("##### *:blue[Reviews] &nbsp; &nbsp; &nbsp; : "+str(review_count)+"*")
             col1.markdown("##### *:blue[Price] &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : "+str(price)+" Rs*")
-            
             col2.image(image_url, width=250)
+
+            
         else:
-            qr = 10
             #this product is amazing! we loved it!
             nbc_score = nbc_model(review) * 100
             nbc_score = round(nbc_score, 2)
-            print(nbc_score)
+            #(nbc_score)
             
             lr_score = lr_model(review) * 100
             lr_score = round(lr_score, 2)
