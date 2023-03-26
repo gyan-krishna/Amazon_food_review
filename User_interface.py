@@ -31,7 +31,9 @@ def nbc_model(text):
     tfidf_vectoriszer = pickle.load(open(r'TF_IDF/vectorizer.pickle', 'rb'))
     score = 0
     for m in nbc_models:
-        p = m.predict(tfidf_vectoriszer.transform([text]))
+        #print(type(tfidf_vectoriszer.transform([text])))
+        vctr = tfidf_vectoriszer.transform([text])
+        p = m.predict(vctr)
         score += p[0]
     score /= len(nbc_models)
     print(score)
@@ -80,14 +82,14 @@ def main():
         else:
             qr = 10
             #this product is amazing! we loved it!
-            #nbc_score = nbc_model(review) * 100
-            #nbc_score = round(nbc_score, 2)
-            #print(nbc_score)
+            nbc_score = nbc_model(review) * 100
+            nbc_score = round(nbc_score, 2)
+            print(nbc_score)
             
-            #lr_score = lr_model(review) * 100
-            #lr_score = round(lr_score, 2)
+            lr_score = lr_model(review) * 100
+            lr_score = round(lr_score, 2)
         
-        score = 15
+        score = nbc_score
         col1, col2 = st.columns(2)
         if(score >= 80):
             col1.markdown("# Positive")
