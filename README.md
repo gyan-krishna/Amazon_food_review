@@ -7,4 +7,4 @@ The application is depoloyed using streamlit
 
 https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/
 
-<img src='images/screenshot.png'>
+<img src='Images/screenshot.png'>
