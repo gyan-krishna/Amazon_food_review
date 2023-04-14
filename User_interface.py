@@ -146,21 +146,31 @@ def get_review_df(url):
     df = pd.DataFrame(data, columns = ['Name', 'Stars', 'Summary', 'date', 'review', 'helpfulness'])
     return df    
 
-def get_product_details(url):
+def get_details(url):
     soup = html_code(url)
     
     name = soup.find('span', class_='a-size-large product-title-word-break').getText()
     price = soup.find('span', class_='a-price-whole').getText()
     image = soup.find_all("img", class_ = "a-dynamic-image a-stretch-horizontal")
     
-    if(len(image)>0):
+    if(len(image) > 0):
         image = image[0]['src']
+    else:
+        image = soup.find_all("img", class_ = "a-dynamic-image a-stretch-vertical")
+        if(len(image) > 0):
+            image = image[0]['src']
+        else:
+            image = ""
     
+    print('product name = ', name)
+    print('product cost = ', price)
+    print('image = ', image)
     return [name, price, image]
 
 def df_scoring(df):
     score = [0,0,0,0]
-        
+    print("\n\n\n",df.columns)
+    print(df, '\n\n\n')
     for review in df['review']:
         score[0] += lr_model(review) * 100
         score[1] += svm_model(review) * 100
@@ -196,7 +206,7 @@ def main():
             df = get_review_df(review)
             lr_score, svm_score, nbc_score, rf_score = df_scoring(df)
             
-            product_name, price, image_url = get_product_details(review)
+            product_name, price, image_url = get_details(review)
                 
             #product_name = "dummy"
             review_count = len(df['review'])
@@ -271,11 +281,6 @@ def main():
     fig = px.bar(df, x="Model", y=["Precision", "Accuracy", "F1-Score", "Support"], barmode='group', height=400)
     # st.dataframe(df) # if need to display dataframe
     st.plotly_chart(fig)
-    
-    st.markdown("""---""")
-    st.markdown("#####  Soumili Mitra")
-    st.markdown("#####  Gyan Krishna Sreekar")
-    st.markdown("#####  Srijita Das")
 
 if __name__=='__main__':
     main()
