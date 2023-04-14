@@ -8,3 +8,11 @@ The application is depoloyed using streamlit.
 https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/
 
 <img src='Images/screenshot.png' href="https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/">
+
+
+### Final year project for completion of MSc Computer Science,
+- Gyan Krishna Sreekar
+- Soumili Mitra
+- Srijita Das 
+
+Dept of computer science, St. Xavier's College (Autonomous), Kolkata
