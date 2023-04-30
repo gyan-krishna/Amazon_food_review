@@ -8,7 +8,10 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
 
 nbc_models = []
 svm_models = []
@@ -121,6 +124,8 @@ def get_rev_zones(soup):
     return review_cards
 
 def extract_info(card):
+    if(card is None):
+        return None
     name = (card.find('span', class_='a-profile-name')).getText()
     star = pre_process_stars((card.find('span', class_='a-icon-alt')).getText())
     summary = (card.find('a', class_='a-size-base a-link-normal review-title a-color-base review-title-content a-text-bold')).getText()
@@ -141,7 +146,8 @@ def get_review_df(url):
     data = []
     for i in cards:
         info = extract_info(i)
-        data.append(info)
+        if(info is not None):
+            data.append(info)
     #(data)
     df = pd.DataFrame(data, columns = ['Name', 'Stars', 'Summary', 'date', 'review', 'helpfulness'])
     return df    
@@ -184,6 +190,58 @@ def df_scoring(df):
     return score
     
 ########################################################################
+stopwords= set(['br','the','i','me','myself','we','my','our','ours','ourselves','you',"you're","you've",\
+                "you'll","you'd","your",'yours','yourself','yourselves','he','him','his','himself',\
+                'she',"she's",'her','hers','herself','it',"it's",'its','itself','they','them','their',\
+                'theirs','themselves','what','which','who','whom','this','that',"that'll",'these','those',\
+                'am','is','are','was','were','be','been','being','have','has','had','having','do','does',\
+                'did','doing','a','an','the','and','but','if','or','because','as','until','while','of',\
+                'at','by','for','with','about','against','between','into','through','during','before','after',\
+                'above','below','to','from','up','down','in','out','on','off','over','under','again','further',\
+                'then','once','here','there','when','where','why','how','all','any','both','each','few','more',\
+                'most','other','some','such','only','own','same','so','than','too','very',\
+                's','t','can','will','just','don','dont','should',"should've",'now','d','ll','m','o','re',\
+                've','y','ain','aren',"aren't",'couldn',"couldn't",'didn',"didn't",'doesn',"doesn't",'hadn',\
+                "mustn't",'needn',"needn't",'shan',"shan't",'shouldn',"shouldn't",'wasn',"wasn't",'weren',"weren't",\
+                'won',"won't",'wouldn',"wouldn't"])
+
+
+import re
+def decontracted(phrase):
+  phrase = re.sub(r"won't", "will not",phrase)
+  phrase = re.sub(r"can\'t","can not",phrase)
+  
+  phrase = re.sub(r"n\'t"," not",phrase)
+  phrase = re.sub(r"\'re"," are",phrase)
+  phrase = re.sub(r"\'s"," is",phrase)
+  phrase = re.sub(r"\'d"," would",phrase)
+  phrase = re.sub(r"\'ll"," will",phrase)
+  phrase = re.sub(r"\'t"," not",phrase)
+  phrase = re.sub(r"\'ve"," have",phrase)
+  phrase = re.sub(r"\'m"," am",phrase)
+
+  return phrase
+
+def remove_html_tags(sentance):
+  clean=re.compile('<.*?>')
+  sentance=re.sub(clean,' ',sentance)
+  return sentance
+
+def preprocess(sentance):
+  sentance = sentance.replace('\n',' ')
+  sentance = sentance.replace('\t',' ')
+  sentance = re.sub(r"http\S+"," ",sentance)
+  #sentance = BeautifulSoup(sentance,'lxml').get_text()
+  sentance = decontracted(sentance)
+  sentance = re.sub("\S*\d\S*", " ",sentance).strip()
+  sentance = re.sub('[^A-Za-z]+',' ',sentance)
+  sentance = ' '.join(e.lower() for e in sentance.split() if e.lower() not in stopwords)
+  stemmer = nltk.porter.PorterStemmer()
+  sentance = ' '.join([stemmer.stem(token) for token in sentance.split()])
+  return sentance
+
+
+########################################################################
 def main():
     load_models()
     st.title(":green[Amazon Food Review Analyser]")
@@ -208,6 +266,11 @@ def main():
             
             product_name, price, image_url = get_details(review)
                 
+            ##----------------------------------------------------------------
+            df['review'] = df['review'].apply(remove_html_tags)
+            df['review'] = df['review'].apply(decontracted)
+            df['review'] = df['review'].apply(preprocess)
+            
             #product_name = "dummy"
             review_count = len(df['review'])
             #image_url = "https://m.media-amazon.com/images/I/61tMn7E8CwL._SX679_.jpg"

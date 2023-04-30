@@ -9,6 +9,17 @@ https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/
 
 <img src='Images/screenshot.png' href="https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/">
 
+### Instructions to try it out!
+1. git clone https://github.com/gyan-krishna/Amazon_food_review.git
+2. streamlit run User_interface.py
+
+#### Libraries required:-
+1. pip install streamlit
+2. pip install pickle
+3. pip install pandas
+4. pip install nltk
+5. pip install beautifulsoup4
+6. pip install requests
 
 ### Final year project for completion of MSc Computer Science,
 - Gyan Krishna Sreekar
