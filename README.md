@@ -21,6 +21,8 @@ https://gyan-krishna-amazon-food-review-user-interface-wtlb8g.streamlit.app/
 5. pip install beautifulsoup4
 6. pip install requests
 
+#### Links for dataset:-
+1. https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews
 ### Final year project for completion of MSc Computer Science,
 - Gyan Krishna Sreekar
 - Soumili Mitra
