@@ -205,7 +205,6 @@ stopwords= set(['br','the','i','me','myself','we','my','our','ours','ourselves',
                 "mustn't",'needn',"needn't",'shan',"shan't",'shouldn',"shouldn't",'wasn',"wasn't",'weren',"weren't",\
                 'won',"won't",'wouldn',"wouldn't"])
 
-
 import re
 def decontracted(phrase):
   phrase = re.sub(r"won't", "will not",phrase)
@@ -334,14 +333,14 @@ def main():
     
     df = pd.DataFrame(
     [  
-         ["Multinomial Naive Bayes", 0.87, 0.89, 0.88, 0.5], 
-         ["Support Vector Machine", 0.67, 0.69, 0.68, 0.5], 
-         ["Logistic Regression", 0.77, 0.79, 0.78, 0.5], 
-         ["Random Forest", 0.97, 0.99, 0.98, 0.5]],
-    columns=["Model", "Precision", "Accuracy", "F1-Score", "Support"]
+         ["Multinomial Naive Bayes", 0.88,    0.89,     0.88], 
+         ["Support Vector Machine", 0.87,  0.87,  0.87], 
+         ["Logistic Regression", 0.88,  0.88,  0.88], 
+         ["Random Forest", 0.83,  0.83,  0.83]],
+    columns=["Model", "Precision", "recall", "F1-Score"]
     )
 
-    fig = px.bar(df, x="Model", y=["Precision", "Accuracy", "F1-Score", "Support"], barmode='group', height=400)
+    fig = px.bar(df, x="Model", y=["Precision", "recall", "F1-Score"], barmode='group', height=400)
     # st.dataframe(df) # if need to display dataframe
     st.plotly_chart(fig)
 
